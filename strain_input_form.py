@@ -102,15 +102,7 @@ def solve_triangle(eps_c, eps_s, d, H, lcr, eps_fr):
 # ---------------------------------------------------------
 # Visual sanity check -- draws the same shape as your picture,
 # using real numbers, so you can eyeball if it looks right.
-# matplotlib = a plotting library, separate from AutoCAD; this
-# is just a quick preview, not the final AutoCAD drawing.
-# ---------------------------------------------------------
-# ---------------------------------------------------------
-# Visual sanity check -- draws the same shape as your picture,
-# using real numbers, so you can eyeball if it looks right.
-# Uses plain tkinter Canvas (built into Python already, zero
-# extra install) instead of matplotlib -- matplotlib alone was
-# most of your .exe's 80MB, so dropping it shrinks the build a lot.
+# Uses plain tkinter Canvas
 # ---------------------------------------------------------
 def draw_preview(solved):
     eps_c = float(solved["eps_c"])
@@ -148,7 +140,7 @@ def draw_preview(solved):
     def to_px(x, y):
         # map data-space (x,y) -> pixel-space. Canvas y already
         # increases downward, same direction as our "height from
-        # top" convention, so no flipping needed (unlike matplotlib).
+        # top" convention, so no flipping needed
         px = margin + (x - min_x) / (max_x - min_x) * (W - 2 * margin)
         py = margin + (y - min_y) / (max_y - min_y) * (HPX - 2 * margin)
         return px, py
@@ -246,8 +238,7 @@ def send_to_autocad(solved):
     eps_fr = float(solved["eps_fr"])
     scale = float(solved["scale"])
 
-    # Scaled x-positions for the strain corners -- same math as the
-    # matplotlib preview, so the AutoCAD drawing matches it visually.
+    # Scaled x-positions for the strain corners
     xc = eps_c * scale
     xs = -eps_s * scale
     x_fr = -eps_fr * scale
