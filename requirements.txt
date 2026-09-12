@@ -1,0 +1,3 @@
+pyautocad
+pywin32
+pyinstaller
