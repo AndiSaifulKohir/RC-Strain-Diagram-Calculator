@@ -172,6 +172,20 @@
     color:var(--paper-dim);
     margin-bottom:0.8rem;
   }
+  .citation{
+    text-align:right;
+    font-size:0.75rem;
+    color:var(--paper-dim);
+    margin-top:0.6rem;
+  }
+  .citation a{
+    color:var(--cyan-dim);
+    text-decoration:none;
+  }
+  .citation a:hover{
+    color:var(--cyan);
+    text-decoration:underline;
+  }
   .download-note{
     font-size:0.78rem;
     color:var(--paper-dim);
@@ -232,6 +246,7 @@
   <section class="panel diagram-panel">
     <div class="diagram-title">live preview — not to real AutoCAD precision, just a sanity check</div>
     <svg id="diagram" viewBox="0 0 700 850" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="citation">Strain-diagram relationship based on: Djamaluddin et al., <em>ETASR</em> vol. 16, no. 1, 2026 — <a href="https://doi.org/10.48084/etasr.15826" target="_blank" rel="noopener">doi.org/10.48084/etasr.15826</a></div>
   </section>
 </main>
 
