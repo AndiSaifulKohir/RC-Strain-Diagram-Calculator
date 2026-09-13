@@ -118,10 +118,10 @@ def draw_preview(solved):
     xc = eps_c * scale
     xs = -eps_s * scale
     x_fr = -eps_fr * scale
-    x_d = min(xs, x_fr, -1) - 10
-    x_H = max(xc, 1) + max(abs(xs), abs(xc)) * 0.3 + 1
-    x_lcr = x_fr + 20
-    x_c = x_fr - 20
+    x_lcr = max(xc, 1) + max(abs(xs), abs(xc)) * 0.3 + 1
+    x_H = x_lcr - (0 - x_lcr) * 0.3
+    x_c = min(xs, x_fr, -1) - max(abs(xs), abs(xc)) * 0.3 - 1
+    x_d = x_c + x_c * 0.3
 
     # ---- figure out the data's bounding box, so we can map it onto
     # a fixed-size canvas (canvas coordinates are just pixels) ----
@@ -133,6 +133,7 @@ def draw_preview(solved):
     pad_y = (max_y - min_y) * 0.08 or 1
     min_x, max_x = min_x - pad_x, max_x + pad_x
     min_y, max_y = min_y - pad_y, max_y + pad_y
+    dimension_gap = max((max_x - min_x) * 0.015, 1)
 
     W, HPX = 700, 850  # canvas size in pixels
     margin = 40
@@ -179,25 +180,27 @@ def draw_preview(solved):
 
     dot((0, c), "red")
     line((x_c, 0), (x_c, c), color="red", arrows=True)
-    line((x_c + 2, 0), (0, 0), color="red", dash=(2, 2))
-    line((x_c + 2, c), (0, c), color="red", dash=(2, 2))
-    label((x_c, c / 2), f"c={c:.4g}", "red", dx=-10, dy=0, anchor="e")
+    line((x_c - dimension_gap, 0), (0, 0), color="red", dash=(2, 2))
+    line((x_c - dimension_gap, c), (0, c), color="red", dash=(2, 2))
+    label((x_c, c / 2), f"c={c:.4g}", "red", dx=10, dy=0)
 
     dot((x_fr, y_fr), "teal")
     label((x_fr, y_fr), f"\u03b5fr={eps_fr:.6g}", "teal", dx=10, dy=10)
 
     # ---- dimension lines (double-headed arrows + a text label) ----
     line((x_lcr, y_fr), (x_lcr, H), color="orange", arrows=True)
-    line((x_lcr - 2, y_fr), (0, y_fr), color="orange", dash=(2, 2))
-    line((x_lcr - 2, H), (0, H), color="orange", dash=(2, 2))
-    label((x_lcr, (y_fr + H) / 2), f"lcr={lcr:.4g}", "orange", dx=10, dy=0)
+    line((x_lcr + dimension_gap, y_fr), (0, y_fr), color="orange", dash=(2, 2))
+    line((x_lcr + dimension_gap, H), (0, H), color="orange", dash=(2, 2))
+    label((x_lcr, (y_fr + H) / 2), f"lcr={lcr:.4g}", "orange", dx=-10, dy=0, anchor="e")
 
     line((x_d, 0), (x_d, d), color="black", arrows=True)
-    line((x_d - 2, 0), (0, 0), color="black", dash=(2, 2))
-    line((x_d - 2, d), (0, d), color="black", dash=(2, 2))
+    line((x_d - dimension_gap, 0), (0, 0), color="black", dash=(2, 2))
+    line((x_d - dimension_gap, d), (0, d), color="black", dash=(2, 2))
     label((x_d, d / 2), f"d={d:.4g}", "black", dx=-10, dy=0, anchor="e")
 
     line((x_H, 0), (x_H, H), color="blue", arrows=True)
+    line((x_H + dimension_gap, 0), (0, 0), color="blue", dash=(2, 2))
+    line((x_H + dimension_gap, H), (0, H), color="blue", dash=(2, 2))
     label((x_H, H / 2), f"H={H:.4g}", "blue", dx=10, dy=0)
 
 
@@ -242,10 +245,10 @@ def send_to_autocad(solved):
     xc = eps_c * scale
     xs = -eps_s * scale
     x_fr = -eps_fr * scale
-    x_d = min(xs, x_fr, -1) - 10
-    x_H = max(xc, 1) + max(abs(xs), abs(xc)) * 0.3 + 1
-    x_lcr = x_fr + 20
-    x_c = x_fr - 20
+    x_lcr = max(xc, 1) + max(abs(xs), abs(xc)) * 0.3 + 1
+    x_H = x_lcr - (0 - x_lcr) * 0.3
+    x_c = min(xs, x_fr, -1) - max(abs(xs), abs(xc)) * 0.3 - 1
+    x_d = x_c + x_c * 0.3
 
     # AutoCAD's Y axis points up by default; our diagram wants height=0
     # (top of section) at the top of the screen and height increasing
@@ -303,8 +306,8 @@ class StrainForm:
         self.fields = {}
         rows = [
             ("eps_c", "εc (compression strain at top fiber)", "0.003"),
-            ("eps_s", "εs (tension strain at tension rebar)", "0.013723"),
-            ("d", "d (effective depth)", "213.5"),
+            ("eps_s", "εs (tension strain at tension rebar)", "420/200000"),
+            ("d", "d (effective depth)", "212.5"),
             ("H", "H (total height)", "250"),
             ("eps_fr", "εfr (cracking strain)", "0.62/4700"),
             ("lcr", "lcr (crack length)", ""),
@@ -336,7 +339,8 @@ class StrainForm:
 
         self.result = None  # will hold the solved dict after Calculate is pressed
 
-    def on_calculate(self):
+    def on_calculate(self, show_result=True):
+        self.result = None
         try:
             eps_c = parse_fraction(self.fields["eps_c"].get())
             eps_s = parse_fraction(self.fields["eps_s"].get())
@@ -364,14 +368,14 @@ class StrainForm:
                 f"eps_c = {float(solved['eps_c']):.6f}\n"
                 f"eps_s = {float(solved['eps_s']):.6f}\n"
             )
-            messagebox.showinfo("Result", msg)
+            if show_result:
+                messagebox.showinfo("Result", msg)
 
         except Exception as e:
             messagebox.showerror("Input problem", str(e))
 
     def on_draw(self):
-        if self.result is None:
-            self.on_calculate()
+        self.on_calculate(show_result=False)
         if self.result:
             draw_preview(self.result)
 

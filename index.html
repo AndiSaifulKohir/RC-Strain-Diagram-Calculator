@@ -212,11 +212,11 @@
     </div>
     <div class="field">
       <label for="eps_s">εs <span class="hint">tension strain at tension rebar</span></label>
-      <input id="eps_s" value="0.013723">
+      <input id="eps_s" value="420/200000">
     </div>
     <div class="field">
       <label for="d">d <span class="hint">effective depth</span></label>
-      <input id="d" value="213.5">
+      <input id="d" value="212.5">
     </div>
     <div class="field">
       <label for="H">H <span class="hint">total height</span></label>
@@ -253,7 +253,7 @@
 <script>
 // ---------------------------------------------------------
 // Parse "3/1000" or "0.003" into a plain float. (The web
-// preview only needs to look right; the downloaded Python
+// preview only needs to look right; the downloaded AutoLISP
 // script re-parses your exact typed text with Fraction(),
 // so no rounding ever reaches the actual AutoCAD drawing.)
 // ---------------------------------------------------------
@@ -268,7 +268,7 @@ function parseNum(text){
 }
 
 // ---------------------------------------------------------
-// Same relationships as solve_triangle() in the Python app.
+// Solving triangle formula.
 // ---------------------------------------------------------
 function solveTriangle(eps_c, eps_s, d, H, lcr, eps_fr){
   if(eps_fr === null) throw new Error("εfr is required — lcr is measured from the εfr crossing point.");
@@ -304,10 +304,10 @@ function drawDiagram(solved, scale){
   const xc = eps_c * scale;
   const xs = -eps_s * scale;
   const x_fr = -eps_fr * scale;
-  const x_d = Math.min(xs, x_fr, -1) - 10;
-  const x_H = Math.max(xc, 1) + Math.max(Math.abs(xs), Math.abs(xc)) * 0.3 + 1;
-  const x_lcr = x_fr + 20;
-  const x_c = x_fr - 20;
+  const x_lcr = Math.max(xc, 1) + Math.max(Math.abs(xs), Math.abs(xc)) * 0.3 + 1;
+  const x_H = x_lcr - (0 - x_lcr) * 0.3;
+  const x_c = Math.min(xs, x_fr, -1) - Math.max(Math.abs(xs), Math.abs(xc)) * 0.3 - 1;
+  const x_d = x_c + x_c * 0.3;
 
   const allX = [0, xc, xs, x_fr, x_lcr, x_d, x_c, x_H];
   const allY = [0, c, d, H, y_fr];
@@ -316,6 +316,7 @@ function drawDiagram(solved, scale){
   const padX = (maxX - minX) * 0.12 || 1;
   const padY = (maxY - minY) * 0.08 || 1;
   minX -= padX; maxX += padX; minY -= padY; maxY += padY;
+  const dimensionGap = Math.max((maxX - minX) * 0.015, 1);
 
   const W = 700, HPX = 850, margin = 40;
   const toPx = (x,y) => [
@@ -359,7 +360,7 @@ function drawDiagram(solved, scale){
 
   // arrowhead marker def
   const defs = document.createElementNS(ns, "defs");
-  defs.innerHTML = `<marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+  defs.innerHTML = `<marker id="arrow" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto-start-reverse">
     <path d="M0,0 L6,3 L0,6 Z" fill="#f2a35c"/></marker>`;
   svg.appendChild(defs);
 
@@ -370,38 +371,39 @@ function drawDiagram(solved, scale){
   
 
   dot([xc,0], "var(--green)".replace("var(--green)","#8fe3a0"));
-  label([xc,0], `εc=${eps_c.toPrecision(4)}`, "#8fe3a0", 8, -12);
+  label([xc,0], `εc=${eps_c.toPrecision(4)}`, "#8fe3a0", 0, -12, "middle");
 
   dot([xs,d], "#d3a1ff");
-  label([xs,d], `εs=${eps_s.toPrecision(4)}`, "#d3a1ff", 8, 16);
+  label([xs,d], `εs=${eps_s.toPrecision(4)}`, "#d3a1ff", 0, 20, "middle");
 
   dot([0,c], "#ff8a80");
   line([x_c,0],[x_c,c], "#ff8a80", null, true);
-  line([x_c+2,0],[0,0], "#ff8a80", "2,2");
-  line([x_c+2,c],[0,c], "#ff8a80", "2,2");
-  label([x_c,c/2], `c=${c.toPrecision(4)}`, "#ff8a80", -10, 0, "end");
+  line([x_c-dimensionGap,0],[0,0], "#ff8a80", "2,2");
+  line([x_c-dimensionGap,c],[0,c], "#ff8a80", "2,2");
+  label([x_c,c/2], `c=${c.toPrecision(4)}`, "#ff8a80", 10, 0);
 
   dot([x_fr,y_fr], "#6fd6ff");
-  label([x_fr,y_fr], `εfr=${eps_fr.toPrecision(4)}`, "#6fd6ff", 10, 12);
+  label([x_fr,y_fr], `εfr=${eps_fr.toPrecision(4)}`, "#6fd6ff", 0, 20, "middle");
 
   line([x_lcr,y_fr],[x_lcr,H], "#f2a35c", null, true);
-  line([x_lcr-2,y_fr],[0,y_fr], "#f2a35c", "2,2");
-  line([x_lcr-2,H],[0,H], "#f2a35c", "2,2");
-  label([x_lcr,(y_fr+H)/2], `lcr=${lcr.toPrecision(4)}`, "#f2a35c", 10, 0);
+  line([x_lcr+dimensionGap,y_fr],[0,y_fr], "#f2a35c", "2,2");
+  line([x_lcr+dimensionGap,H],[0,H], "#f2a35c", "2,2");
+  label([x_lcr,(y_fr+H)/2], `lcr=${lcr.toPrecision(4)}`, "#f2a35c", -10, 0, "end");
 
   line([x_d,0],[x_d,d], "#eaf3fb", null, true);
-  line([x_d-2,0],[0,0], "#eaf3fb", "2,2");
-  line([x_d-2,d],[0,d], "#eaf3fb", "2,2");
+  line([x_d-dimensionGap,0],[0,0], "#eaf3fb", "2,2");
+  line([x_d-dimensionGap,d],[0,d], "#eaf3fb", "2,2");
   label([x_d,d/2], `d=${d.toPrecision(4)}`, "#eaf3fb", -10, 0, "end");
 
   line([x_H,0],[x_H,H], "#6fd6ff", null, true);
+  line([x_H+dimensionGap,0],[0,0], "#6fd6ff", "2,2");
+  line([x_H+dimensionGap,H],[0,H], "#6fd6ff", "2,2");
   label([x_H,H/2], `H=${H.toPrecision(4)}`, "#6fd6ff", 10, 0);
 }
 
 // ---------------------------------------------------------
 // Build the downloadable local script as AutoLISP (.lsp).
-// AutoCAD runs this natively -- no Python needed on the
-// machine that opens it, just APPLOAD (or drag-and-drop)
+// AutoCAD runs this natively, just drag-and-drop script
 // inside AutoCAD itself. Loading the file runs the drawing
 // automatically. Values are baked in as plain
 // numbers, already solved here in the browser.
@@ -428,8 +430,7 @@ function buildScript(raw){
 
   return `;;; Standalone AutoCAD drawing script -- generated from the web calculator.
 ;;; Drag and drop this file onto the AutoCAD drawing
-;;; window, or load it with APPLOAD. The diagram is drawn
-;;; automatically when the file loads.
+;;; window. The diagram is drawn automatically.
 
 (defun c:DRAWSTRAIN ( / eps_c eps_s d H eps_fr c y_fr lcr xc xs x_fr x_H unit texth oldcelltype oldosmode)
 
