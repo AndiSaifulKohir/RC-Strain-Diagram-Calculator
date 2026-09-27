@@ -116,6 +116,27 @@
     outline:none;
     border-color:var(--cyan-dim);
   }
+  .slider-control{
+    display:flex;
+    align-items:center;
+    gap:0.7rem;
+    margin-top:0.45rem;
+  }
+  .slider-control input[type="range"]{
+    flex:1;
+    width:auto;
+    min-width:0;
+    padding:0;
+    accent-color:var(--cyan);
+    cursor:pointer;
+  }
+  .slider-control output{
+    width:5.5rem;
+    color:var(--paper-dim);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.75rem;
+    text-align:right;
+  }
   .field.blank input{
     border-style:dashed;
   }
@@ -209,10 +230,18 @@
     <div class="field">
       <label for="eps_c">εc <span class="hint">compression strain at top fiber</span></label>
       <input id="eps_c" value="0.003">
+      <div class="slider-control">
+        <input id="eps_c_slider" type="range" min="0" max="0.01" step="0.00001" aria-label="Adjust εc">
+        <output id="eps_c_slider_value" for="eps_c_slider">0.003000</output>
+      </div>
     </div>
     <div class="field">
       <label for="eps_s">εs <span class="hint">tension strain at tension rebar</span></label>
       <input id="eps_s" value="420/200000">
+      <div class="slider-control">
+        <input id="eps_s_slider" type="range" min="0" max="0.02" step="0.00001" aria-label="Adjust εs">
+        <output id="eps_s_slider_value" for="eps_s_slider">0.002100</output>
+      </div>
     </div>
     <div class="field">
       <label for="d">d <span class="hint">effective depth</span></label>
@@ -235,7 +264,7 @@
       <input id="scale" value="10000">
     </div>
 
-    <div class="note">Type plain decimals or fractions — either works. Leave exactly one of εc, εs, lcr empty; it gets solved from the other two.</div>
+    <div class="note">Type plain decimals or fractions — either works. Leave exactly one of εc, εs, lcr empty; it gets solved from the other two. Adjust either strain slider to hold the other strain fixed while lcr is recalculated.</div>
 
     <div class="results" id="results">—</div>
 
@@ -305,9 +334,9 @@ function drawDiagram(solved, scale){
   const xs = -eps_s * scale;
   const x_fr = -eps_fr * scale;
   const x_lcr = Math.max(xc, 1) + Math.max(Math.abs(xs), Math.abs(xc)) * 0.3 + 1;
-  const x_H = x_lcr - (0 - x_lcr) * 0.3;
+  const x_H = x_lcr - Math.min(xc, xs) * 0.3;
   const x_c = Math.min(xs, x_fr, -1) - Math.max(Math.abs(xs), Math.abs(xc)) * 0.3 - 1;
-  const x_d = x_c + x_c * 0.3;
+  const x_d = x_c + Math.min(xc, xs) * 0.3;
 
   const allX = [0, xc, xs, x_fr, x_lcr, x_d, x_c, x_H];
   const allY = [0, c, d, H, y_fr];
@@ -509,6 +538,10 @@ function recalc(){
 
   const errEl = document.getElementById("error");
   const resEl = document.getElementById("results");
+  const epsCSlider = document.getElementById("eps_c_slider");
+  const epsSSlider = document.getElementById("eps_s_slider");
+  const epsCSliderValue = document.getElementById("eps_c_slider_value");
+  const epsSSliderValue = document.getElementById("eps_s_slider_value");
   errEl.textContent = "";
 
   try{
@@ -524,6 +557,11 @@ function recalc(){
 
     const solved = solveTriangle(eps_c, eps_s, d, H, lcr, eps_fr);
     drawDiagram(solved, scale);
+    epsCSlider.value = solved.eps_c;
+    epsSSlider.value = solved.eps_s;
+    epsCSliderValue.textContent = solved.eps_c.toFixed(6);
+    epsSSliderValue.textContent = solved.eps_s.toFixed(6);
+    lastSolved = solved;
 
     resEl.innerHTML =
       `<span>c</span>    = ${solved.c.toFixed(4)}<br>` +
@@ -536,12 +574,35 @@ function recalc(){
   } catch(e){
     errEl.textContent = e.message;
     resEl.textContent = "—";
+    lastSolved = null;
     window._lastRaw = null;
   }
 }
 
-document.querySelectorAll("#form-panel input").forEach(el => {
+let lastSolved = null;
+
+document.querySelectorAll("#form-panel input:not([type='range'])").forEach(el => {
   el.addEventListener("input", recalc);
+});
+
+[
+  ["eps_c_slider", "eps_c"],
+  ["eps_s_slider", "eps_s"]
+].forEach(([sliderId, strainId]) => {
+  const slider = document.getElementById(sliderId);
+  slider.addEventListener("input", () => {
+    const epsC = document.getElementById("eps_c");
+    const epsS = document.getElementById("eps_s");
+
+    if(lastSolved){
+      if(epsC.value.trim() === "") epsC.value = lastSolved.eps_c;
+      if(epsS.value.trim() === "") epsS.value = lastSolved.eps_s;
+    }
+
+    document.getElementById(strainId).value = slider.value;
+    document.getElementById("lcr").value = "";
+    recalc();
+  });
 });
 
 document.getElementById("downloadBtn").addEventListener("click", () => {
@@ -563,3 +624,6 @@ recalc();
 </script>
 </body>
 </html>
+
+//update dimension scale so that dimension lines always visible properly
+//update user input for interactive slider
