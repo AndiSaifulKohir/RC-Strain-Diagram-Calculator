@@ -1,13 +1,15 @@
 # RC Strain Diagram Calculator
 
-A small tool for solving and drawing the reinforced-concrete strain diagram
-(εc, εs, c, lcr) used when estimating crack length / beam performance.
+A small tool for solving and drawing the reinforced-concrete strain
+diagram used when estimating crack length / beam performance.
 
 **Live web version:** _[RC-Strain-Diagram-Calculator](https://andisaifulkohir.github.io/RC-Strain-Diagram-Calculator/)_
 
 ## What it does
 
-- Enter any 2 of εc, εs, lcr (plus d, H, εfr) — the third is solved for you.
+- Enter any 2 of εc, εd, lcr (plus d, H, εfr) — the third is solved for you.
+- Use the “+ Add strain point” button to add any number of optional εs1, εs2,
+  … depth readouts measured from the top; these readouts do not affect the solution.
 - Live diagram preview in the browser.
 - Download button generates a  script that draws the
   same diagram straight into a running AutoCAD.
@@ -16,7 +18,9 @@ A small tool for solving and drawing the reinforced-concrete strain diagram
 
 | File                     | What it's for                                                               |
 | ------------------------ | --------------------------------------------------------------------------- |
-| `index.html`           | Web calculator + live preview — open directly or via GitHub Pages          |
+| `index.html`           | Web calculator interface and live preview                                   |
+| `RCSD-calculator.css`  | Calculator-specific styling; shared design tokens load from the main site   |
+| `RCSD-calculator.js`   | Calculator logic and AutoLISP export                                        |
 | `strain_input_form.py` | Desktop version (tkinter GUI), same math, can also send to AutoCAD directly |
 | `requirements.txt`     | Python packages needed for the desktop version                              |
 
