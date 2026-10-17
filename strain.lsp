@@ -10,7 +10,7 @@
 ;;   1. In AutoCAD: type APPLOAD, browse to strain.lsp, click Load.
 ;;      (Or just drag-and-drop strain.lsp onto the AutoCAD window.)
 ;;   2. Type STRAIN at the command line to open the input form.
-;;   3. Fill in values -- leave exactly ONE of eps_c / eps_s / lcr
+;;   3. Fill in values -- leave exactly ONE of eps_c / eps_s / Lcr
 ;;      blank (it gets solved for you) -- then click "Draw in AutoCAD".
 ;;
 ;; NOTE: Works on AutoCAD for Windows. AutoCAD for Mac does not
@@ -47,21 +47,21 @@
 ;; The actual math (mirrors solve_triangle() from the Python version).
 ;;   c    = neutral axis depth from top (strain = 0)
 ;;   y_fr = height from top where strain = -eps_fr
-;;   lcr  = distance from that eps_fr point DOWN TO THE BOTTOM OF H
+;;   Lcr  = distance from that eps_fr point DOWN TO THE BOTTOM OF H
 ;;          (not down to d)
-;; eps_fr is always required -- lcr's definition depends on it.
-;; Returns (eps_c eps_s c lcr y_fr) on success, or nil on failure
+;; eps_fr is always required -- Lcr's definition depends on it.
+;; Returns (eps_c eps_s c Lcr y_fr) on success, or nil on failure
 ;; (with *strain-err* set to an explanation).
 ;; ------------------------------------------------------------------
 (defun solve-triangle (epsc epss d h lcr epsfr / yfr c)
   (setq *strain-err* nil)
   (cond
     ((not epsfr)
-     (setq *strain-err* "eps_fr is required -- lcr is measured from the eps_fr crossing point.")
+     (setq *strain-err* "eps_fr is required -- Lcr is measured from the eps_fr crossing point.")
      nil
     )
     ((/= (count-filled epsc epss lcr) 2)
-     (setq *strain-err* "Fill exactly 2 of: eps_c, eps_s, lcr (leave the third blank).")
+     (setq *strain-err* "Fill exactly 2 of: eps_c, eps_s, Lcr (leave the third blank).")
      nil
     )
     (t
@@ -70,14 +70,14 @@
        ((and epsc lcr)
         (setq yfr (- h lcr))
         (if (equal yfr 0.0 1e-12)
-          (setq *strain-err* "H - lcr came out to 0; can't solve for eps_s (check lcr/H).")
+          (setq *strain-err* "H - Lcr came out to 0; can't solve for eps_s (check Lcr/H).")
           (setq epss (- (/ (* d (+ epsc epsfr)) yfr) epsc))
         )
        )
        ((and epss lcr)
         (setq yfr (- h lcr))
         (if (equal d yfr 1e-9)
-          (setq *strain-err* "d equals H-lcr; can't solve for eps_c (check lcr/H).")
+          (setq *strain-err* "d equals H-Lcr; can't solve for eps_c (check Lcr/H).")
           (setq epsc (/ (- (* yfr epss) (* d epsfr)) (- d yfr)))
         )
        )
@@ -87,7 +87,7 @@
        (progn
          ;; neutral axis depth -- top to zero-strain point
          (setq c (/ (* d epsc) (+ epsc epss)))
-         ;; eps_fr crossing height, and lcr from THAT point to bottom of H
+         ;; eps_fr crossing height, and Lcr from THAT point to bottom of H
          ;; -- always recomputed here so it's consistent either way
          (setq yfr (/ (* d (+ epsc epsfr)) (+ epsc epss)))
          (setq lcr (- h yfr))
@@ -133,7 +133,7 @@
 
 ;; ------------------------------------------------------------------
 ;; Draws the full diagram into the current drawing.
-;; True lengths (c, lcr, d, H) get real DIMALIGNED dimension objects,
+;; True lengths (c, Lcr, d, H) get real DIMALIGNED dimension objects,
 ;; true-size, no scale applied. Strains (eps_c, eps_s, eps_fr) are
 ;; NOT real lengths -- they only get their scaled x-position and a
 ;; plain text label, same as the matplotlib preview.
@@ -165,7 +165,7 @@
   (draw-point (P xfr yfr))
   (draw-text (strcat "eps_fr=" (rtos epsfr 2 6)) (P (- xfr (* unit 2)) (- yfr unit)) (* unit 0.5))
 
-  ;; real dimensions (true length, true scale): c, lcr, d, H
+  ;; real dimensions (true length, true scale): c, Lcr, d, H
   (draw-point (P 0 c))
   (command "_.dimaligned" (P 0 0) (P 0 c) (P (* unit 2) (/ c -2.0)))
   (command "_.dimaligned" (P 0 yfr) (P 0 h) (P (* unit -3) (/ (+ yfr h) -2.0)))
@@ -201,7 +201,7 @@
           (setq msg (strcat
             "c    = " (rtos (nth 2 solved) 2 6) "   (neutral axis, top -> strain=0)\n"
             "y_fr = " (rtos (nth 4 solved) 2 6) "   (top -> eps_fr crossing point)\n"
-            "lcr  = " (rtos (nth 3 solved) 2 6) "   (eps_fr point -> bottom of H)\n"
+            "Lcr  = " (rtos (nth 3 solved) 2 6) "   (eps_fr point -> bottom of H)\n"
             "eps_c = " (rtos (nth 0 solved) 2 6) "\n"
             "eps_s = " (rtos (nth 1 solved) 2 6)
           ))
@@ -263,10 +263,10 @@
   (write-line "  : edit_box { key = \"epss\";  label = \"eps_s (tension strain, bottom fiber):\"; edit_width = 16; }" f)
   (write-line "  : edit_box { key = \"d\";     label = \"d (effective depth):\"; edit_width = 16; }" f)
   (write-line "  : edit_box { key = \"h\";     label = \"H (total height):\"; edit_width = 16; }" f)
-  (write-line "  : edit_box { key = \"epsfr\"; label = \"eps_fr (cracking strain, used for lcr):\"; edit_width = 16; }" f)
-  (write-line "  : edit_box { key = \"lcr\";   label = \"lcr (eps_fr point -> bottom of H):\"; edit_width = 16; }" f)
+  (write-line "  : edit_box { key = \"epsfr\"; label = \"eps_fr (cracking strain, used for Lcr):\"; edit_width = 16; }" f)
+  (write-line "  : edit_box { key = \"lcr\";   label = \"Lcr (eps_fr point -> bottom of H):\"; edit_width = 16; }" f)
   (write-line "  : edit_box { key = \"scale\"; label = \"horizontal scale multiplier:\"; edit_width = 16; }" f)
-  (write-line "  : text { label = \"Leave exactly ONE of eps_c / eps_s / lcr blank.\"; }" f)
+  (write-line "  : text { label = \"Leave exactly ONE of eps_c / eps_s / Lcr blank.\"; }" f)
   (write-line "  spacer;" f)
   (write-line "  : row {" f)
   (write-line "    : button { key = \"calc\"; label = \"Calculate\"; width = 12; }" f)

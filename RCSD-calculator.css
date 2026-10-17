@@ -95,16 +95,18 @@ header {
   margin-bottom: 28px;
 }
 
-.home-link {
-  color: var(--text-muted);
-  font-size: 0.9rem;
+.logo {
+  color: var(--text);
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.07em;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
-.home-link:hover {
-  color: var(--blue);
-}
+.logo span { color: var(--blue); }
+
+.logo:hover { color: var(--blue); }
 
 .theme-toggle {
   width: 40px;

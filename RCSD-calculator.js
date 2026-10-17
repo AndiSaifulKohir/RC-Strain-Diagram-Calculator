@@ -18,22 +18,22 @@ function parseNum(text){
 // Solving triangle formula.
 // ---------------------------------------------------------
 function solveTriangle(eps_c, eps_d, d, H, lcr, eps_fr){
-  if(eps_fr === null) throw new Error("εfr is required — lcr is measured from the εfr crossing point.");
+  if(eps_fr === null) throw new Error("εfr is required — Lcr is measured from the εfr crossing point.");
   const filled = [eps_c, eps_d, lcr].filter(v => v !== null).length;
-  if(filled !== 2) throw new Error("Fill exactly 2 of: εc, εd, lcr (leave the third blank).");
+  if(filled !== 2) throw new Error("Fill exactly 2 of: εc, εd, Lcr (leave the third blank).");
 
   if(eps_c !== null && eps_d !== null){
     // nothing to solve here yet
   } else if(eps_c !== null && lcr !== null){
     const y_fr = H - lcr;
-    if(y_fr === 0) throw new Error("H - lcr came out to 0 — check lcr/H.");
+    if(y_fr === 0) throw new Error("H - Lcr came out to 0 — check Lcr/H.");
     eps_d = d * (eps_c + eps_fr) / y_fr - eps_c;
   } else if(eps_d !== null && lcr !== null){
     const y_fr = H - lcr;
-    if(d === y_fr) throw new Error("d equals H-lcr — check lcr/H.");
+    if(d === y_fr) throw new Error("d equals H-Lcr — check Lcr/H.");
     eps_c = (y_fr * eps_d - d * eps_fr) / (d - y_fr);
   } else {
-    throw new Error("Need at least one of εc/εd, plus lcr, d, H, and εfr.");
+    throw new Error("Need at least one of εc/εd, plus Lcr, d, H, and εfr.");
   }
 
   const c = d * eps_c / (eps_c + eps_d);
@@ -158,7 +158,7 @@ function drawDiagram(solved, scale, measurementPoints=[]){
   line([x_lcr,y_fr],[x_lcr,H], colors.lcr, null, true);
   line([x_lcr+dimensionGap,y_fr],[0,y_fr], colors.lcr, "2,2");
   line([x_lcr+dimensionGap,H],[0,H], colors.lcr, "2,2");
-  label([x_lcr,(y_fr+H)/2], `lcr=${lcr.toPrecision(4)}`, colors.lcr, -10, 0, "end");
+  label([x_lcr,(y_fr+H)/2], `Lcr=${lcr.toPrecision(4)}`, colors.lcr, -10, 0, "end");
 
   line([x_d,0],[x_d,d], colors.line, null, true);
   line([x_d-dimensionGap,0],[0,0], colors.line, "2,2");
@@ -269,7 +269,7 @@ function buildScript(raw){
   (command "_.ZOOM" "_Extents")
 
   (princ "\\nDrawn. c=") (princ (rtos c 2 4))
-  (princ "  lcr=") (princ (rtos lcr 2 4))
+  (princ "  Lcr=") (princ (rtos lcr 2 4))
   (princ)
 )
 
@@ -326,7 +326,7 @@ function recalc(){
     resEl.innerHTML =
       `<span>c</span>    = ${solved.c.toFixed(4)}<br>` +
       `<span>y_fr</span> = ${solved.y_fr.toFixed(4)}<br>` +
-      `<span>lcr</span>  = ${solved.lcr.toFixed(4)}<br>` +
+      `<span>Lcr</span>  = ${solved.lcr.toFixed(4)}<br>` +
       `<span>eps_c</span> = ${solved.eps_c.toFixed(6)}<br>` +
       `<span>eps_d</span> = ${solved.eps_d.toFixed(6)}` +
       (measurementPoints.length
@@ -356,8 +356,36 @@ function updateThemeToggle(isDark){
 }
 
 updateThemeToggle(document.documentElement.getAttribute("data-theme") === "dark");
+
+window.addEventListener("message", (event) => {
+  if (
+    event.source !== window.parent ||
+    (event.origin !== window.location.origin && event.origin !== "null") ||
+    !event.data ||
+    event.data.type !== "theme-change" ||
+    (event.data.theme !== "dark" && event.data.theme !== "light")
+  ) {
+    return;
+  }
+
+  const isDark = event.data.theme === "dark";
+  if (isDark) {
+    document.documentElement.setAttribute("data-theme", "dark");
+  } else {
+    document.documentElement.removeAttribute("data-theme");
+  }
+  localStorage.setItem("theme", event.data.theme);
+  updateThemeToggle(isDark);
+  recalc();
+  window.parent.postMessage(
+    { type: "theme-applied", theme: event.data.theme },
+    "*"
+  );
+});
+
 themeToggle.addEventListener("click", () => {
   const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  const nextIsDark = !isDark;
   if(isDark){
     document.documentElement.removeAttribute("data-theme");
     localStorage.setItem("theme", "light");
@@ -365,8 +393,14 @@ themeToggle.addEventListener("click", () => {
     document.documentElement.setAttribute("data-theme", "dark");
     localStorage.setItem("theme", "dark");
   }
-  updateThemeToggle(!isDark);
+  updateThemeToggle(nextIsDark);
   recalc();
+  if (window.parent !== window) {
+    window.parent.postMessage(
+      { type: "theme-change", theme: nextIsDark ? "dark" : "light" },
+      "*"
+    );
+  }
 });
 
 document.querySelectorAll("#form-panel input:not([type='range'])").forEach(el => {

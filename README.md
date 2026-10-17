@@ -5,9 +5,15 @@ diagram used when estimating crack length / beam performance.
 
 **Live web version:** _[RC-Strain-Diagram-Calculator](https://andisaifulkohir.github.io/RC-Strain-Diagram-Calculator/)_
 
+The Quick access menu is shared with the portfolio homepage and FBD Solver and
+requires an internet connection. It loads from
+`https://andisaifulkohir.github.io/assets/`; update
+`assets/quick-access.html` in the homepage project to change the menu for all
+three pages.
+
 ## What it does
 
-- Enter any 2 of εc, εd, lcr (plus d, H, εfr) — the third is solved for you.
+- Enter any 2 of εc, εd, Lcr (plus d, H, εfr) — the third is solved for you.
 - Use the “+ Add strain point” button to add any number of optional εs1, εs2,
   … depth readouts measured from the top; these readouts do not affect the solution.
 - Live diagram preview in the browser.
@@ -47,8 +53,7 @@ DOI: [10.48084/etasr.15826](https://doi.org/10.48084/etasr.15826)
 
 ## Acknowledgment
 
-This tool (both the web calculator and desktop app) was built with the help
-of [Claude.ai](https://claude.ai).
+This project was built with the help of Claude and GitHub Copilot in VS Code.
 
 ## License
 

@@ -43,53 +43,53 @@ def parse_fraction(text):
 #        crosses the main vertical reference line, strain = 0)
 # y_fr = height (from top) where the diagonal's strain would
 #        equal -eps_fr (the cracking-strain point)
-# lcr  = distance from that eps_fr crossing point DOWN TO THE
+# Lcr  = distance from that eps_fr crossing point DOWN TO THE
 #        BOTTOM OF H (not down to d)
 #
-# Because lcr's definition now depends on eps_fr, eps_fr is a
+# Because Lcr's definition now depends on eps_fr, eps_fr is a
 # required input every time (no longer optional/unused).
 # ---------------------------------------------------------
 def solve_triangle(eps_c, eps_s, d, H, lcr, eps_fr):
     """
     eps_fr is always required.
-    Exactly one of eps_c, eps_s, lcr should be None (blank) coming in.
+    Exactly one of eps_c, eps_s, Lcr should be None (blank) coming in.
     Returns dict with all values filled in, plus computed c, y_fr.
     """
     if eps_fr is None:
-        raise ValueError("\u03b5fr is required now -- lcr is measured from the \u03b5fr crossing point.")
+        raise ValueError("\u03b5fr is required now -- Lcr is measured from the \u03b5fr crossing point.")
 
     filled = [v is not None for v in (eps_c, eps_s, lcr)]
     if sum(filled) != 2:
-        raise ValueError("Fill exactly 2 of: \u03b5c, \u03b5s, lcr (leave the third blank).")
+        raise ValueError("Fill exactly 2 of: \u03b5c, \u03b5s, Lcr (leave the third blank).")
 
     if eps_c is not None and eps_s is not None:
         # both strains already known -- nothing to solve for here
         pass
 
     elif eps_c is not None and lcr is not None:
-        # y_fr = d*(eps_c+eps_fr)/(eps_c+eps_s)  and  lcr = H - y_fr
-        # so: y_fr = H - lcr  ->  solve that equation for eps_s
+        # y_fr = d*(eps_c+eps_fr)/(eps_c+eps_s)  and  Lcr = H - y_fr
+        # so: y_fr = H - Lcr  ->  solve that equation for eps_s
         y_fr = H - lcr
         if y_fr == 0:
-            raise ValueError("H - lcr came out to 0; can't solve for \u03b5s (check lcr/H).")
+            raise ValueError("H - Lcr came out to 0; can't solve for \u03b5s (check Lcr/H).")
         eps_s = d * (eps_c + eps_fr) / y_fr - eps_c
 
     elif eps_s is not None and lcr is not None:
         # same relationship, rearranged to solve for eps_c instead
         y_fr = H - lcr
         if d == y_fr:
-            raise ValueError("d equals H-lcr; can't solve for \u03b5c (check lcr/H).")
+            raise ValueError("d equals H-Lcr; can't solve for \u03b5c (check Lcr/H).")
         eps_c = (y_fr * eps_s - d * eps_fr) / (d - y_fr)
 
     else:
-        raise ValueError("Need at least one of \u03b5c/\u03b5s, plus lcr, d, H, and \u03b5fr.")
+        raise ValueError("Need at least one of \u03b5c/\u03b5s, plus Lcr, d, H, and \u03b5fr.")
 
     # neutral axis depth -- unchanged definition, top to zero-strain point
     c = d * eps_c / (eps_c + eps_s)
 
-    # eps_fr crossing height (top -> strain = -eps_fr), and lcr measured
+    # eps_fr crossing height (top -> strain = -eps_fr), and Lcr measured
     # from THAT point down to the bottom of H -- always recomputed here
-    # so it's consistent even if lcr was one of the two inputs above
+    # so it's consistent even if Lcr was one of the two inputs above
     y_fr = d * (eps_c + eps_fr) / (eps_c + eps_s)
     lcr = H - y_fr
 
@@ -191,7 +191,7 @@ def draw_preview(solved):
     line((x_lcr, y_fr), (x_lcr, H), color="orange", arrows=True)
     line((x_lcr + dimension_gap, y_fr), (0, y_fr), color="orange", dash=(2, 2))
     line((x_lcr + dimension_gap, H), (0, H), color="orange", dash=(2, 2))
-    label((x_lcr, (y_fr + H) / 2), f"lcr={lcr:.4g}", "orange", dx=-10, dy=0, anchor="e")
+    label((x_lcr, (y_fr + H) / 2), f"Lcr={lcr:.4g}", "orange", dx=-10, dy=0, anchor="e")
 
     line((x_d, 0), (x_d, d), color="black", arrows=True)
     line((x_d - dimension_gap, 0), (0, 0), color="black", dash=(2, 2))
@@ -211,7 +211,7 @@ def draw_preview(solved):
 #   - Windows, with AutoCAD already open
 #   - pip install pyautocad pywin32
 #
-# True lengths (c, lcr, d, H) get drawn as real AutoCAD DimAligned
+# True lengths (c, Lcr, d, H) get drawn as real AutoCAD DimAligned
 # dimension objects, true-size, no scale applied -- they're actual
 # measurements the drawing can be trusted for.
 #
@@ -283,7 +283,7 @@ def send_to_autocad(solved):
     # --- real dimensions (true lengths, drawn true-size) ---
     ms.AddPoint(P(0, c))  # neutral axis point, marked for reference
     ms.AddDimAligned(P(0, 0), P(0, c), P(x_c, -c / 2))                     # c
-    ms.AddDimAligned(P(0, y_fr), P(0, H), P(x_lcr, -(y_fr + H) / 2))       # lcr: eps_fr point -> bottom of H
+    ms.AddDimAligned(P(0, y_fr), P(0, H), P(x_lcr, -(y_fr + H) / 2))       # Lcr: eps_fr point -> bottom of H
     ms.AddDimAligned(P(0, 0), P(0, d), P(x_d, -d / 2))                     # d
 
     # H needs its own vertical reference line off to the side (like
@@ -310,7 +310,7 @@ class StrainForm:
             ("d", "d (effective depth)", "212.5"),
             ("H", "H (total height)", "250"),
             ("eps_fr", "εfr (cracking strain)", "0.62/4700"),
-            ("lcr", "lcr (crack length)", ""),
+            ("lcr", "Lcr (crack length)", ""),
             ("scale", "horizontal scale multiplier", "10000"),
         ]
 
@@ -323,7 +323,7 @@ class StrainForm:
 
         tk.Label(
             root,
-            text="Leave exactly ONE of εc / εs / lcr blank\n(it gets calculated for you).",
+            text="Leave exactly ONE of εc / εs / Lcr blank\n(it gets calculated for you).",
             fg="gray30",
         ).grid(row=len(rows), column=0, columnspan=2, pady=(4, 8))
 
@@ -353,7 +353,7 @@ class StrainForm:
             if d is None or H is None:
                 raise ValueError("d and H are always required.")
             if eps_fr is None:
-                raise ValueError("εfr is always required now (lcr is measured from it).")
+                raise ValueError("εfr is always required now (Lcr is measured from it).")
 
             solved = solve_triangle(eps_c, eps_s, d, H, lcr, eps_fr)
             solved["scale"] = scale
@@ -364,7 +364,7 @@ class StrainForm:
             msg = (
                 f"c    = {float(solved['c']):.6f}   (neutral axis, top -> strain=0)\n"
                 f"y_fr = {float(solved['y_fr']):.6f}   (top -> εfr crossing point)\n"
-                f"lcr  = {float(solved['lcr']):.6f}   (εfr point -> bottom of H)\n"
+                f"Lcr  = {float(solved['lcr']):.6f}   (εfr point -> bottom of H)\n"
                 f"eps_c = {float(solved['eps_c']):.6f}\n"
                 f"eps_s = {float(solved['eps_s']):.6f}\n"
             )
