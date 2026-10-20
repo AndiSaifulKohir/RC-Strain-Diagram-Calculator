@@ -321,7 +321,6 @@ function recalc(){
     epsDSlider.value = solved.eps_d;
     epsCSliderValue.textContent = solved.eps_c.toFixed(6);
     epsDSliderValue.textContent = solved.eps_d.toFixed(6);
-    lastSolved = solved;
 
     resEl.innerHTML =
       `<span>c</span>    = ${solved.c.toFixed(4)}<br>` +
@@ -339,12 +338,9 @@ function recalc(){
   } catch(e){
     errEl.textContent = e.message;
     resEl.textContent = "—";
-    lastSolved = null;
     window._lastRaw = null;
   }
 }
-
-let lastSolved = null;
 
 const themeToggle = document.getElementById("theme-toggle");
 const themeIcon = document.getElementById("theme-icon");
@@ -448,16 +444,15 @@ function updateStrainPointLabels(){
 ].forEach(([sliderId, strainId]) => {
   const slider = document.getElementById(sliderId);
   slider.addEventListener("input", () => {
-    const epsC = document.getElementById("eps_c");
-    const epsD = document.getElementById("eps_d");
+    const strain = document.getElementById(strainId);
+    const otherStrainId = strainId === "eps_c" ? "eps_d" : "eps_c";
+    const lcr = document.getElementById("lcr");
+    const wasCalculated = strain.value.trim() === "";
 
-    if(lastSolved){
-      if(epsC.value.trim() === "") epsC.value = lastSolved.eps_c;
-      if(epsD.value.trim() === "") epsD.value = lastSolved.eps_d;
+    strain.value = slider.value;
+    if(wasCalculated && lcr.value.trim() !== ""){
+      document.getElementById(otherStrainId).value = "";
     }
-
-    document.getElementById(strainId).value = slider.value;
-    document.getElementById("lcr").value = "";
     recalc();
   });
 });
