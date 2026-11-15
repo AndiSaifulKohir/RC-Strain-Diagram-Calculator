@@ -30,7 +30,7 @@
 
 <main>
   <section class="panel" id="form-panel">
-    <div id="error"></div>
+    <div id="error" role="alert" aria-live="polite"></div>
 
     <div class="field">
       <label for="eps_c">εc <span class="hint">compression strain at top fiber</span></label>
@@ -71,7 +71,7 @@
       <input id="scale" value="10000">
     </div>
 
-    <div class="results" id="results">—</div>
+    <div class="results" id="results" aria-live="polite">—</div>
 
     <button id="downloadBtn">Download drawing script (.lsp)</button>
     <div class="download-note">AutoLISP — drag and drop the downloaded file onto the AutoCAD drawing window and it draws immediately. APPLOAD also runs it automatically; no command typing is needed.</div>
