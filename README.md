@@ -28,12 +28,12 @@ three pages.
 | `RCSD-calculator.css`  | Calculator-specific styling; shared design tokens load from the main site   |
 | `RCSD-calculator.js`   | Calculator logic and AutoLISP export                                        |
 | `strain_input_form.py` | Desktop version (tkinter GUI), same math, can also send to AutoCAD directly |
-| `requirements.txt`     | Python packages needed for the desktop version                              |
+| `requirements-desktop.txt`| Python packages needed for the desktop version                              |
 
 ## Running the desktop version
 
 ```
-pip install -r requirements.txt
+pip install -r requirements-desktop.txt
 python strain_input_form.py
 ```
 
@@ -58,3 +58,9 @@ This project was built with the help of Claude and GitHub Copilot in VS Code.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Deploy (Cloudflare Workers)
+
+Live at https://asaiko.org/rcsd-calculator/. Cloudflare Workers Builds runs `npx wrangler deploy` on every push to `main`.
+`wrangler.jsonc` runs `node scripts/build-cloudflare.mjs`, which copies the site into `dist/rcsd-calculator/`, and sets the route `asaiko.org/rcsd-calculator*`.
+When you add a new file the site needs, add it to the list in `scripts/build-cloudflare.mjs`.

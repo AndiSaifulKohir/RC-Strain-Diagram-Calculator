@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rcsd-calculator",
+  "compatibility_date": "2026-11-01",
+  // Static site lives under dist/rcsd-calculator/ so asaiko.org/rcsd-calculator/ maps to the right files.
+  "build": { "command": "node scripts/build-cloudflare.mjs" },
+  "assets": { "directory": "./dist", "not_found_handling": "404-page" },
+  "routes": [
+    { "pattern": "asaiko.org/rcsd-calculator*", "zone_name": "asaiko.org" }
+  ],
+  "workers_dev": true
+}
